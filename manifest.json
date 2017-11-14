@@ -1,17 +1,25 @@
 {
-    "name": "DevToolsPanel",
-    "version": "0.1",
-    "description": "A bare-bones example of communication between devtools and an inspected page",
+    "name": "Fengari",
+    "version": "0.0.1",
+    "description": "Extends the Developer Tools, adding tools for debugging and profiling Fengari applications.",
     "devtools_page": "devtools.html",
-    "background": {
-        "scripts": [
-            "background.js"
-        ]
-    },
+    "manifest_version": 2,
+
     "permissions": [
         "tabs", 
         "http://*/*",
         "https://*/*"
     ],
-    "manifest_version": 2
+
+    "icons": {
+        "16": "panel/images/logo.png",
+        "48": "panel/images/logo.png",
+        "128": "panel/images/logo.png"
+    },
+
+    "background": {
+        "scripts": [
+            "background.js"
+        ]
+    }
 }

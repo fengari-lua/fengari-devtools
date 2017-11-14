@@ -1,0 +1,22 @@
+{
+  "name": "fengari-devtools",
+  "version": "1.0.0",
+  "description": "Fengari devtools",
+  "main": "background.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/giann/fengari-devtools.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/giann/fengari-devtools/issues"
+  },
+  "homepage": "https://github.com/giann/fengari-devtools#readme",
+  "dependencies": {
+    "fengari-web": "git+https://github.com/fengari-lua/fengari-web.git#devtools"
+  }
+}

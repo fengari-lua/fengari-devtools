@@ -11,7 +11,7 @@
 (function createChannel() {
     //Create a port with background page for continous message communication
     var port = chrome.extension.connect({
-        name: "Sample Communication" //Given a Name
+        name: "fengari" //Given a Name
     });
 
     // Listen to messages from the background page
@@ -24,7 +24,13 @@
 
 // This sends an object to the background page 
 // where it can be relayed to the inspected page
-function sendObjectToInspectedPage(message) {
-    message.tabId = chrome.devtools.inspectedWindow.tabId;
+function sendObjectToInspectedPage(action, content) {
+    let message = {
+        tabId: chrome.devtools.inspectedWindow.tabId,
+        action: action,
+        content: content
+    };
+
+    console.warn("Sending to inspected page: ", message);
     chrome.extension.sendMessage(message);
 }
