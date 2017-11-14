@@ -5,8 +5,7 @@
 // Create a tab in the devtools area
 chrome.devtools.panels.create("Fengari", "toast.png", "panel.html", function(panel) {});
 
-
-chrome.devtools.inspectedWindow.eval(`
+const registerDevtool = function () {
     window.__FENGARI_DEVTOOLS__ = function(fengari, interop, L) {
 
         const lua     = fengari.lua;
@@ -53,7 +52,22 @@ chrome.devtools.inspectedWindow.eval(`
                 //     value: tag,
                 //     configurable: true
                 // });
-                ok = lua.lua_pcall(L, 0, 0, base);
+                let top = lua.lua_gettop(L);
+                ok = lua.lua_pcall(L, 0, lua.LUA_MULTRET, base);
+                let nresults = lua.lua_gettop(L) - top;
+
+                console.warn(nresults + " results...");
+
+                let results = []
+                for (let i = nresults; i >= 0; i--) {
+                    results.push(lua.to_jsstring(lauxlib.luaL_tolstring(L, -1)));
+                    lua.lua_pop(L, 2);
+                }
+
+                window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_RESULTS__", {
+                    detail: results.reverse()
+                }));
+
                 /* Remove the currentScript getter installed above; this restores normal behaviour */
                 // delete document.currentScript;
                 /* Remove message handler */
@@ -78,11 +92,12 @@ chrome.devtools.inspectedWindow.eval(`
         };
 
         window.addEventListener("__FENGARI_DEVTOOLS_EXECUTE__", function (event) {
-            console.warn("Received execute request for code:", event.detail, event);
             run_lua_script(lua.to_luastring(event.detail));
         })
 
     };
 
     window.dispatchEvent(new Event("__FENGARI_DEVTOOLS__"));
-`);
+}
+
+chrome.devtools.inspectedWindow.eval(`(${registerDevtool.toString()})()`);

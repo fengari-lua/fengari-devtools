@@ -2,12 +2,14 @@ local js = require "js"
 
 -- Save references to lua baselib functions used
 local _G = _G
-local pack = table.pack
+local pack, unpack = table.pack, table.unpack
 local tostring = tostring
 
 local window = js.global
 local document = window.document
 local hljs = js.global.hljs
+
+window:sendObjectToInspectedPage("script", "injected.js")
 
 local output = document:getElementById("fengari-console")
 local prompt = document:getElementById("fengari-prompt")
@@ -40,6 +42,17 @@ _G.print = function(...)
 
     output.scrollTop = output.scrollHeight
 end
+
+window:addEventListener("__FENGARI_DEVTOOLS_RESULTS__", function (_, event)
+    local results = event.detail
+
+    local toprint = {}
+    for result in js.of(results) do
+        table.insert(toprint, result)
+    end
+
+    _G.print(unpack(toprint))
+end)
 
 local function doREPL()
     do

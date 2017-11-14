@@ -16,8 +16,10 @@
 
     // Listen to messages from the background page
     port.onMessage.addListener(function (message) {
-      document.querySelector('#insertmessagebutton').innerHTML = message.content;
-      // port.postMessage(message);
+        if (message.type === "__FENGARI_DEVTOOLS_RESULTS__")
+            window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_RESULTS__", {
+                detail: message.data
+            }));
     });
 
 }());
@@ -31,6 +33,5 @@ function sendObjectToInspectedPage(action, content) {
         content: content
     };
 
-    console.warn("Sending to inspected page: ", message);
     chrome.extension.sendMessage(message);
 }
