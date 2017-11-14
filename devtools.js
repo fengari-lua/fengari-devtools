@@ -28,7 +28,10 @@ const registerDevtool = function () {
         };
 
         const run_lua_script = function(code) {
-            let ok = lauxlib.luaL_loadbuffer(L, code, null, lua.to_luastring("devtool-line"));
+            let ok = lauxlib.luaL_loadbuffer(L, lua.to_luastring("return " + code), null, lua.to_luastring("devtool-line"));
+            if (ok !== lua.LUA_OK)
+                ok = lauxlib.luaL_loadbuffer(L, lua.to_luastring(code), null, lua.to_luastring("devtool-line"));
+            
             let e;
             if (ok === lua.LUA_ERRSYNTAX) {
                 let msg = lua.lua_tojsstring(L, -1);
@@ -92,7 +95,7 @@ const registerDevtool = function () {
         };
 
         window.addEventListener("__FENGARI_DEVTOOLS_EXECUTE__", function (event) {
-            run_lua_script(lua.to_luastring(event.detail));
+            run_lua_script(event.detail);
         })
 
     };
