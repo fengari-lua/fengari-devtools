@@ -43,6 +43,14 @@ _G.print = function(...)
     output.scrollTop = output.scrollHeight
 end
 
+local function executeOnInspectedPage(code)
+    window:sendObjectToInspectedPage("code",
+        [[
+            window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_EXECUTE__", { detail: `]] .. code .. [[` }))
+        ]]
+    );
+end
+
 window:addEventListener("__FENGARI_DEVTOOLS_RESULTS__", function (_, event)
     local results = event.detail
 
@@ -83,11 +91,7 @@ local function doREPL()
         end
     end
 
-    window:sendObjectToInspectedPage("code",
-        [[
-            window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_EXECUTE__", { detail: `]] .. line .. [[` }))
-        ]]
-    );
+    executeOnInspectedPage(line)
 
     input.value = ""
 
@@ -143,3 +147,25 @@ function input:onkeydown(e)
 end
 
 _G.print(_G._COPYRIGHT)
+
+-- Override _G.print to capture its output
+executeOnInspectedPage([[
+    do
+        local gprint = _G.print
+        local window = js.global
+
+        _G.print = function(...)
+            gprint(...)
+
+            local eventData = js.new(window.Object)
+            eventData.detail = window:Array()
+            for i, e in ipairs(table.pack(...)) do
+                eventData.detail:push(tostring(e))
+            end
+
+            local event = js.new(window.CustomEvent, "__FENGARI_DEVTOOLS_RESULTS__", eventData)
+
+            window:dispatchEvent(event);
+        end
+    end
+]])
