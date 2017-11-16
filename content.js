@@ -88,7 +88,9 @@ const registerDevtool = function () {
 
             window.addEventListener("__FENGARI_DEVTOOLS_EXECUTE__", function (event) {
                 run_lua_script(event.detail);
-            })
+            });
+
+            delete window.__FENGARI_DEVTOOLS__;
 
         };
     }
