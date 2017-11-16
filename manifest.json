@@ -25,9 +25,16 @@
         "persistent": false
     },
 
-    "content_scripts": [{
-        "matches": ["<all_urls>"],
-        "js": ["content.js"],
-        "run_at": "document_start"
-    }]
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["content.js"],
+            "run_at": "document_start"
+        },
+        {
+            "matches": ["<all_urls>"],
+            "js": ["content-end.js"],
+            "run_at": "document_end"
+        }
+    ]
 }
