@@ -7,6 +7,7 @@ local tostring = tostring
 
 local window = js.global
 local document = window.document
+local console = window.console
 local hljs = js.global.hljs
 
 window:sendObjectToInspectedPage("script", "injected.js")
@@ -14,6 +15,7 @@ window:sendObjectToInspectedPage("script", "injected.js")
 local output = document:getElementById("fengari-console")
 local prompt = document:getElementById("fengari-prompt")
 local input = document:getElementById("fengari-input")
+local state = document:getElementById("state")
 assert(output and prompt and input)
 
 local function triggerEvent(el, type)
@@ -25,6 +27,66 @@ end
 local history = {}
 local historyIndex = nil
 local historyLimit = 100
+
+local registeredStates = {}
+
+local function executeOnInspectedPage(code)
+    window:sendObjectToInspectedPage("code",
+        [[
+            window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_EXECUTE__", {
+                detail: {
+                    stateId: ]] .. state.value .. [[,
+                    code: `]] .. code .. [[`
+                }
+            }))
+        ]]
+    );
+end
+
+local function registerState(stateId)
+    registeredStates[stateId] = true
+
+    local option = document:createElement("option")
+    option.value = stateId
+    option.textContent = "State #" .. math.floor(stateId)
+    state:appendChild(option)
+
+    state.value = stateId
+
+    executeOnInspectedPage([[
+        do
+            local gprint = _G.print
+            local window = js.global
+
+            -- Override _G.print to capture its output
+            _G.print = function(...)
+                gprint(...)
+
+                local eventData = js.new(window.Object)
+                eventData.detail = js.new(window.Object)
+                eventData.detail.stateId = _G.__FENGARI_DEVTOOLS_STATE__
+                eventData.detail.results = window:Array()
+                for i, e in ipairs(table.pack(...)) do
+                    eventData.detail.results:push(tostring(e))
+                end
+
+                local event = js.new(window.CustomEvent, "__FENGARI_DEVTOOLS_RESULTS__", eventData)
+
+                window:dispatchEvent(event);
+            end
+
+            -- debug.sethook(function(event, line)
+            --     print(event, line)
+            --
+            --     local ar = debug.getinfo(2, "nSl")
+            --
+            --     for k,v in pairs(ar) do
+            --         print(k,v)
+            --     end
+            -- end, "l")
+        end
+    ]])
+end
 
 _G.print = function(...)
     local toprint = pack(...)
@@ -43,23 +105,35 @@ _G.print = function(...)
     output.scrollTop = output.scrollHeight
 end
 
-local function executeOnInspectedPage(code)
-    window:sendObjectToInspectedPage("code",
-        [[
-            window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_EXECUTE__", { detail: `]] .. code .. [[` }))
-        ]]
-    );
+local function clear()
+    output.innerHTML = ""
+    _G.print(_G._COPYRIGHT)
 end
 
 window:addEventListener("__FENGARI_DEVTOOLS_RESULTS__", function (_, event)
-    local results = event.detail
-
-    local toprint = {}
-    for result in js.of(results) do
-        table.insert(toprint, result)
+    if (not registeredStates[event.detail.stateId]) then
+        registerState(event.detail.stateId)
     end
 
-    _G.print(unpack(toprint))
+    if (tonumber(event.detail.stateId) == tonumber(state.value)) then
+        local results = event.detail.results
+
+        local toprint = {}
+        for result in js.of(results) do
+            table.insert(toprint, result)
+        end
+
+        _G.print(unpack(toprint))
+    end
+end)
+
+window:addEventListener("__FENGARI_DEVTOOLS_REGISTER__", function (_, event)
+    console:warn(event)
+    registerState(event.detail)
+end)
+
+state:addEventListener("change", function()
+    clear()
 end)
 
 local function doREPL()
@@ -140,32 +214,16 @@ function input:onkeydown(e)
         and not e.metaKey
         and not e.isComposing then
         -- Ctrl+L clears screen like you would expect in a terminal
-        output.innerHTML = ""
-        _G.print(_G._COPYRIGHT)
+        clear()
         return false
     end
 end
 
-_G.print(_G._COPYRIGHT)
+clear()
 
--- Override _G.print to capture its output
-executeOnInspectedPage([[
-    do
-        local gprint = _G.print
-        local window = js.global
-
-        _G.print = function(...)
-            gprint(...)
-
-            local eventData = js.new(window.Object)
-            eventData.detail = window:Array()
-            for i, e in ipairs(table.pack(...)) do
-                eventData.detail:push(tostring(e))
-            end
-
-            local event = js.new(window.CustomEvent, "__FENGARI_DEVTOOLS_RESULTS__", eventData)
-
-            window:dispatchEvent(event);
-        end
-    end
-]])
+-- Ask for active states to register
+window:sendObjectToInspectedPage("code",
+    [[
+        window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_STATES__"))
+    ]]
+);

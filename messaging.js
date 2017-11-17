@@ -20,6 +20,10 @@
             window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_RESULTS__", {
                 detail: message.data
             }));
+        else if (message.type === "__FENGARI_DEVTOOLS_REGISTER__")
+            window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_REGISTER__", {
+                detail: message.data
+            }));
     });
 
 }());

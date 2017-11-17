@@ -1,10 +1,33 @@
 const registerDevtool = function () {
     if (!window.__FENGARI_DEVTOOLS__) {
+        window.__FENGARI_DEVTOOLS_STATES__ = [];
+
+        window.addEventListener("__FENGARI_DEVTOOLS_STATES__", function() {
+            console.warn("__FENGARI_DEVTOOLS_STATES__")
+            for (let i = 0; i < window.__FENGARI_DEVTOOLS_STATES__.length; i++) {
+                window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_REGISTER__", {
+                    detail: i
+                }));
+            }
+        });
+
         window.__FENGARI_DEVTOOLS__ = function(fengari, interop, L) {
 
             const lua     = fengari.lua;
             const lauxlib = fengari.lauxlib;
             const lualib  = fengari.lualib;
+
+            window.__FENGARI_DEVTOOLS_STATES__.push(L);
+
+            const currentState = window.__FENGARI_DEVTOOLS_STATES__.length - 1;
+
+            lua.lua_pushinteger(L, currentState)
+            lua.lua_setglobal(L, lua.to_luastring("__FENGARI_DEVTOOLS_STATE__"));
+
+            console.warn("__FENGARI_DEVTOOLS_REGISTER__", currentState);
+            window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_REGISTER__", {
+                detail: currentState
+            }));
 
             const msghandler = function(L) {
                 let ar = new lua.lua_Debug();
@@ -60,7 +83,10 @@ const registerDevtool = function () {
                     }
 
                     window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_RESULTS__", {
-                        detail: results.reverse()
+                        detail: {
+                            stateId: currentState,
+                            results: results.reverse()
+                        }
                     }));
 
                     /* Remove the currentScript getter installed above; this restores normal behaviour */
@@ -87,10 +113,9 @@ const registerDevtool = function () {
             };
 
             window.addEventListener("__FENGARI_DEVTOOLS_EXECUTE__", function (event) {
-                run_lua_script(event.detail);
+                if (event.detail.stateId === currentState)
+                    run_lua_script(event.detail.code);
             });
-
-            delete window.__FENGARI_DEVTOOLS__;
 
         };
     }
