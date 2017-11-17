@@ -29,7 +29,16 @@ pre {
     display: flex;
 }
 
-.fengari-input-container > * {
+#state {
+    font-family: 'profontwindowsregular';
+    width: 100%;
+    border: none;
+    color: #444;
+    background: #f0f0f0;
+    display: inline-block;
+}
+
+.fengari-input-container > *, .state-container {
     outline: none;
     border: none;
     white-space: pre-wrap;
@@ -43,9 +52,14 @@ pre {
     border-top: 1px solid #ddd;
 }
 
+.state-container {
+    border-radius: 3px 3px 0 0;
+    border-bottom: 1px solid #ddd;
+    white-space: inherit;
+}
+
 #fengari-input {
     flex: 1;
-    height: 11px; /* start off one line tall */
     padding-left: 0;
 }
 
