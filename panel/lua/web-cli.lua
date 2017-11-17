@@ -28,8 +28,6 @@ local history = {}
 local historyIndex = nil
 local historyLimit = 100
 
-local registeredStates = {}
-
 local function executeOnInspectedPage(code)
     window:sendObjectToInspectedPage("code",
         [[
@@ -43,12 +41,10 @@ local function executeOnInspectedPage(code)
     );
 end
 
-local function registerState(stateId)
-    registeredStates[stateId] = true
-
+local function registerState(stateId, stateName)
     local option = document:createElement("option")
     option.value = stateId
-    option.textContent = "State #" .. math.floor(stateId)
+    option.textContent = "State #" .. math.floor(stateId) .. ": " .. stateName
     state:appendChild(option)
 
     state.value = stateId
@@ -111,10 +107,6 @@ local function clear()
 end
 
 window:addEventListener("__FENGARI_DEVTOOLS_RESULTS__", function (_, event)
-    if (not registeredStates[event.detail.stateId]) then
-        registerState(event.detail.stateId)
-    end
-
     if (tonumber(event.detail.stateId) == tonumber(state.value)) then
         local results = event.detail.results
 
@@ -129,7 +121,7 @@ end)
 
 window:addEventListener("__FENGARI_DEVTOOLS_REGISTER__", function (_, event)
     console:warn(event)
-    registerState(event.detail)
+    registerState(event.detail.stateId, event.detail.stateName)
 end)
 
 state:addEventListener("change", function()

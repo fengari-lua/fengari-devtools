@@ -2,22 +2,30 @@ const registerDevtool = function () {
     if (!window.__FENGARI_DEVTOOLS__) {
         window.__FENGARI_DEVTOOLS_STATES__ = [];
 
+        const registerState = function(id, name) {
+            window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_REGISTER__", {
+                detail: {
+                    stateId: id,
+                    stateName: name ? name : document.location.href
+                }
+            }));
+        }
+
         window.addEventListener("__FENGARI_DEVTOOLS_STATES__", function() {
-            console.warn("__FENGARI_DEVTOOLS_STATES__")
             for (let i = 0; i < window.__FENGARI_DEVTOOLS_STATES__.length; i++) {
-                window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_REGISTER__", {
-                    detail: i
-                }));
+                console.warn("__FENGARI_DEVTOOLS_STATES__", i, window.__FENGARI_DEVTOOLS_STATES__[i]);
+                registerState(i, window.__FENGARI_DEVTOOLS_STATES__[i]);
             }
         });
 
-        window.__FENGARI_DEVTOOLS__ = function(fengari, interop, L) {
+        window.__FENGARI_DEVTOOLS__ = function(fengari, interop, L, name) {
+            console.warn(name);
 
             const lua     = fengari.lua;
             const lauxlib = fengari.lauxlib;
             const lualib  = fengari.lualib;
 
-            window.__FENGARI_DEVTOOLS_STATES__.push(L);
+            window.__FENGARI_DEVTOOLS_STATES__.push(name ? name : document.location.href);
 
             const currentState = window.__FENGARI_DEVTOOLS_STATES__.length - 1;
 
@@ -25,9 +33,7 @@ const registerDevtool = function () {
             lua.lua_setglobal(L, lua.to_luastring("__FENGARI_DEVTOOLS_STATE__"));
 
             console.warn("__FENGARI_DEVTOOLS_REGISTER__", currentState);
-            window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_REGISTER__", {
-                detail: currentState
-            }));
+            registerState(currentState, window.__FENGARI_DEVTOOLS_STATES__[currentState]);
 
             const msghandler = function(L) {
                 let ar = new lua.lua_Debug();
