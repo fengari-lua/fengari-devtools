@@ -24,6 +24,14 @@
             window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_REGISTER__", {
                 detail: message.data
             }));
+        else if (message.type === "__FENGARI_DEVTOOLS_DEBUG_START__")
+            window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_DEBUG_START__", {
+                detail: message.data
+            }));
+        else if (message.type === "__FENGARI_DEVTOOLS_DEBUG_STOP__")
+            window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_DEBUG_STOP__", {
+                detail: message.data
+            }));
     });
 
 }());

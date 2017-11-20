@@ -28,17 +28,26 @@ local history = {}
 local historyIndex = nil
 local historyLimit = 100
 
+local debugging = false
+
 local function executeOnInspectedPage(code)
-    window:sendObjectToInspectedPage("code",
-        [[
-            window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_EXECUTE__", {
-                detail: {
-                    stateId: ]] .. state.value .. [[,
-                    code: `]] .. code .. [[`
-                }
-            }))
-        ]]
-    );
+    if (not debugging) then
+        window:sendObjectToInspectedPage("code",
+            [[
+                window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_EXECUTE__", {
+                    detail: {
+                        stateId: ]] .. state.value .. [[,
+                        code: `]] .. code .. [[`
+                    }
+                }))
+            ]]
+        );
+    else
+        local codeMessage = js.new(window.Object)
+        codeMessage.code = code
+        codeMessage.type = "__FENGARI_DEVTOOLS_EXECUTE__"
+        window:sendObjectToInspectedPage("panel", codeMessage)
+    end
 end
 
 local function registerState(stateId, stateName)
@@ -122,6 +131,16 @@ end)
 window:addEventListener("__FENGARI_DEVTOOLS_REGISTER__", function (_, event)
     console:warn(event)
     registerState(event.detail.stateId, event.detail.stateName)
+end)
+
+window:addEventListener("__FENGARI_DEVTOOLS_DEBUG_START__", function (_, event)
+    console:warn(event)
+    debugging = true
+end)
+
+window:addEventListener("__FENGARI_DEVTOOLS_DEBUG_STOP__", function (_, event)
+    console:warn(event)
+    debugging = false
 end)
 
 state:addEventListener("change", function()

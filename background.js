@@ -19,6 +19,10 @@ chrome.extension.onConnect.addListener(function (port) {
                 } else if(message.action === 'script') {
                     chrome.tabs.executeScript(message.tabId, {file: message.content});
 
+                // Send to panel
+                } else if(message.action == "panel") {
+                    port.postMessage(message);
+
                 // Pass message to inspectedPage
                 } else {
                     chrome.tabs.sendMessage(message.tabId, message, sendResponse);
@@ -30,7 +34,7 @@ chrome.extension.onConnect.addListener(function (port) {
             port.postMessage(message);
         }
         sendResponse(message);
-    }
+    };
 
     // Listens to messages sent from the panel
     chrome.extension.onMessage.addListener(extensionListener);

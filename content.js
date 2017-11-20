@@ -9,7 +9,7 @@ const registerDevtool = function () {
                     stateName: name ? name : document.location.href
                 }
             }));
-        }
+        };
 
         window.addEventListener("__FENGARI_DEVTOOLS_STATES__", function() {
             for (let i = 0; i < window.__FENGARI_DEVTOOLS_STATES__.length; i++) {
@@ -29,11 +29,45 @@ const registerDevtool = function () {
 
             const currentState = window.__FENGARI_DEVTOOLS_STATES__.length - 1;
 
-            lua.lua_pushinteger(L, currentState)
+            lua.lua_pushinteger(L, currentState);
             lua.lua_setglobal(L, lua.to_luastring("__FENGARI_DEVTOOLS_STATE__"));
 
             console.warn("__FENGARI_DEVTOOLS_REGISTER__", currentState);
             registerState(currentState, window.__FENGARI_DEVTOOLS_STATES__[currentState]);
+
+
+            // A debug.debug like function that will wait for inputs from devtools
+            const breakpoint = function() {
+                window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_RESULTS__", {
+                    detail: {
+                        stateId: currentState,
+                        results: ["Stopped for debug..."]
+                    }
+                }));
+
+                window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_DEBUG_START__", {
+                    detail: {
+                        stateId: currentState
+                    }
+                }));
+
+                debugger;
+
+                window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_DEBUG_STOP__", {
+                    detail: {
+                        stateId: currentState
+                    }
+                }));
+
+                return 0;
+            };
+
+            // Set debug.debug to breakpoint function
+            lua.lua_getglobal(L, lua.to_luastring("debug"));
+            lua.lua_pushstring(L, lua.to_luastring("debug"));
+            lua.lua_pushcclosure(L, breakpoint, 0);
+            lua.lua_settable(L, -3);
+            lua.lua_pop(L, 1);
 
             const msghandler = function(L) {
                 let ar = new lua.lua_Debug();
@@ -82,7 +116,7 @@ const registerDevtool = function () {
                     ok = lua.lua_pcall(L, 0, lua.LUA_MULTRET, base);
                     let nresults = lua.lua_gettop(L) - top;
 
-                    let results = []
+                    let results = [];
                     for (let i = nresults; i >= 0; i--) {
                         results.push(lua.to_jsstring(lauxlib.luaL_tolstring(L, -1)));
                         lua.lua_pop(L, 2);
@@ -118,6 +152,8 @@ const registerDevtool = function () {
                 }
             };
 
+            window.__FENGARI_DEVTOOLS_RUN__ = run_lua_script;
+
             window.addEventListener("__FENGARI_DEVTOOLS_EXECUTE__", function (event) {
                 if (event.detail.stateId === currentState)
                     run_lua_script(event.detail.code);
@@ -125,7 +161,7 @@ const registerDevtool = function () {
 
         };
     }
-}
+};
 
 var script = document.createElement('script');
 script.textContent = `(${registerDevtool.toString()})()`;
