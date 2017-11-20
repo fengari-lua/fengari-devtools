@@ -24,6 +24,10 @@
             window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_REGISTER__", {
                 detail: message.data
             }));
+        else if (message.type === "__FENGARI_DEVTOOLS_ERROR__")
+            window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_ERROR__", {
+                detail: message.data
+            }));
     });
 
 }());

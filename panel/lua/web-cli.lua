@@ -99,6 +99,8 @@ _G.print = function(...)
     end
 
     output.scrollTop = output.scrollHeight
+
+    return line
 end
 
 local function clear()
@@ -116,6 +118,13 @@ window:addEventListener("__FENGARI_DEVTOOLS_RESULTS__", function (_, event)
         end
 
         _G.print(unpack(toprint))
+    end
+end)
+
+window:addEventListener("__FENGARI_DEVTOOLS_ERROR__", function (_, event)
+    if (tonumber(event.detail.stateId) == tonumber(state.value)) then
+        local line = _G.print(event.detail.error)
+        line.style.color = "red"
     end
 end)
 

@@ -9,7 +9,7 @@ const registerDevtool = function () {
                     stateName: name ? name : document.location.href
                 }
             }));
-        }
+        };
 
         window.addEventListener("__FENGARI_DEVTOOLS_STATES__", function() {
             for (let i = 0; i < window.__FENGARI_DEVTOOLS_STATES__.length; i++) {
@@ -29,7 +29,7 @@ const registerDevtool = function () {
 
             const currentState = window.__FENGARI_DEVTOOLS_STATES__.length - 1;
 
-            lua.lua_pushinteger(L, currentState)
+            lua.lua_pushinteger(L, currentState);
             lua.lua_setglobal(L, lua.to_luastring("__FENGARI_DEVTOOLS_STATE__"));
 
             console.warn("__FENGARI_DEVTOOLS_REGISTER__", currentState);
@@ -39,15 +39,19 @@ const registerDevtool = function () {
                 let ar = new lua.lua_Debug();
                 if (lua.lua_getstack(L, 2, ar))
                     lua.lua_getinfo(L, lua.to_luastring("Sl"), ar);
-                interop.push(L, new ErrorEvent("error", {
-                    bubbles: true,
-                    cancelable: true,
-                    message: lua.lua_tojsstring(L, 1),
-                    error: interop.tojs(L, 1),
-                    filename: ar.short_src ? lua.to_jsstring(ar.short_src) : void 0,
-                    lineno: ar.currentline > 0 ? ar.currentline : void 0
+
+                let error = lua.lua_tojsstring(L, 1);
+
+                lauxlib.luaL_traceback(L, L, undefined, 1);
+
+                window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_ERROR__", {
+                    detail: {
+                        stateId: currentState,
+                        error: `${error}\n${lua.lua_tojsstring(L, 2)}`
+                    }
                 }));
-                return 1;
+
+                return 0;
             };
 
             const run_lua_script = function(code) {
@@ -82,27 +86,25 @@ const registerDevtool = function () {
                     ok = lua.lua_pcall(L, 0, lua.LUA_MULTRET, base);
                     let nresults = lua.lua_gettop(L) - top;
 
-                    let results = []
+                    let results = [];
                     for (let i = nresults; i >= 0; i--) {
                         results.push(lua.to_jsstring(lauxlib.luaL_tolstring(L, -1)));
                         lua.lua_pop(L, 2);
                     }
 
-                    window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_RESULTS__", {
-                        detail: {
-                            stateId: currentState,
-                            results: results.reverse()
-                        }
-                    }));
+                    if (results.length > 0) {
+                        window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_RESULTS__", {
+                            detail: {
+                                stateId: currentState,
+                                results: results.reverse()
+                            }
+                        }));
+                    }
 
                     /* Remove the currentScript getter installed above; this restores normal behaviour */
                     // delete document.currentScript;
                     /* Remove message handler */
                     lua.lua_remove(L, base);
-                    /* Check if normal error that msghandler would have handled */
-                    if (ok === lua.LUA_ERRRUN) {
-                        e = interop.checkjs(L, -1);
-                    }
                 }
                 if (ok !== lua.LUA_OK) {
                     if (e === void 0) {
@@ -125,7 +127,7 @@ const registerDevtool = function () {
 
         };
     }
-}
+};
 
 var script = document.createElement('script');
 script.textContent = `(${registerDevtool.toString()})()`;
