@@ -83,16 +83,6 @@ local function registerState(stateId, stateName)
 
                 window:dispatchEvent(event);
             end
-
-            -- debug.sethook(function(event, line)
-            --     print(event, line)
-            --
-            --     local ar = debug.getinfo(2, "nSl")
-            --
-            --     for k,v in pairs(ar) do
-            --         print(k,v)
-            --     end
-            -- end, "l")
         end
     ]])
 end
@@ -147,28 +137,52 @@ end)
 
 debuggerPauseResume:addEventListener("click", function()
     if (debugging) then
+        -- Resuming: clears debug hook, sends stop
         debugging = false
+
+        executeOnInspectedPage([[
+            debug.sethook()
+        ]])
+
         local codeMessage = js.new(window.Object)
         codeMessage.type = "__FENGARI_DEVTOOLS_DEBUG_STOP__"
         window:sendObjectToInspectedPage("panel", codeMessage)
     else
-        debugging = true
-        window:sendObjectToInspectedPage("code", [[
-            window.dispatchEvent(new Event("__FENGARI_DEVTOOLS_DEBUG_START__"))
+        -- Starting debug, sethook to call debug on next lua line
+        executeOnInspectedPage([[
+            debug.sethook(function()
+                debug.debug()
+                debug.sethook()
+            end, "l")
         ]])
+
+        debugging = true
     end
 end)
 
 debuggerStepInto:addEventListener("click", function()
-
+    if (debugging) then
+        executeOnInspectedPage([[
+            debug.sethook(function()
+                debug.debug()
+                debug.sethook()
+            end, "l")
+        ]])
+        -- Step, like stop but without clearing the hook
+        local codeMessage = js.new(window.Object)
+        codeMessage.type = "__FENGARI_DEVTOOLS_DEBUG_STOP__"
+        window:sendObjectToInspectedPage("panel", codeMessage)
+    end
 end)
 
 debuggerStepOut:addEventListener("click", function()
-
+    if (debugging) then
+    end
 end)
 
 debuggerStepOver:addEventListener("click", function()
-
+    if (debugging) then
+    end
 end)
 
 

@@ -51,6 +51,8 @@ const registerDevtool = function () {
                     }
                 }));
 
+                debugger;
+
                 return 0;
             };
 

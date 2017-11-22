@@ -12,13 +12,14 @@ let debuggee = {
 };
 
 // Enable debugging
+console.warn(`Attaching debugger to ${chrome.devtools.inspectedWindow.tabId}`);
 chrome.debugger.attach(debuggee, "1.2");
 chrome.debugger.sendCommand(debuggee, "Debugger.enable");
 
 chrome.extension.onMessage.addListener(function (message, sender, sendResponse) {
     if (message.type === "__FENGARI_DEVTOOLS_DEBUG_START__") {
         debugging = true;
-        chrome.debugger.sendCommand(debuggee, "Debugger.pause");
+        // chrome.debugger.sendCommand(debuggee, "Debugger.pause");
     }
 
     else if (message.content && message.content.type
