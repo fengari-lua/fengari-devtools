@@ -51,14 +51,6 @@ const registerDevtool = function () {
                     }
                 }));
 
-                debugger;
-
-                window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_DEBUG_STOP__", {
-                    detail: {
-                        stateId: currentState
-                    }
-                }));
-
                 return 0;
             };
 

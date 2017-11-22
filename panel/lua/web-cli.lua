@@ -16,6 +16,10 @@ local output = document:getElementById("fengari-console")
 local prompt = document:getElementById("fengari-prompt")
 local input = document:getElementById("fengari-input")
 local state = document:getElementById("state")
+local debuggerPauseResume = document:getElementById("debugger-pause-resume")
+local debuggerStepInto = document:getElementById("debugger-step-into")
+local debuggerStepOut = document:getElementById("debugger-step-out")
+local debuggerStepOver = document:getElementById("debugger-step-over")
 assert(output and prompt and input)
 
 local function triggerEvent(el, type)
@@ -129,12 +133,10 @@ window:addEventListener("__FENGARI_DEVTOOLS_RESULTS__", function (_, event)
 end)
 
 window:addEventListener("__FENGARI_DEVTOOLS_REGISTER__", function (_, event)
-    console:warn(event)
     registerState(event.detail.stateId, event.detail.stateName)
 end)
 
 window:addEventListener("__FENGARI_DEVTOOLS_DEBUG_START__", function (_, event)
-    console:warn(event)
     debugging = true
 end)
 
@@ -142,6 +144,33 @@ window:addEventListener("__FENGARI_DEVTOOLS_DEBUG_STOP__", function (_, event)
     console:warn(event)
     debugging = false
 end)
+
+debuggerPauseResume:addEventListener("click", function()
+    if (debugging) then
+        debugging = false
+        local codeMessage = js.new(window.Object)
+        codeMessage.type = "__FENGARI_DEVTOOLS_DEBUG_STOP__"
+        window:sendObjectToInspectedPage("panel", codeMessage)
+    else
+        debugging = true
+        window:sendObjectToInspectedPage("code", [[
+            window.dispatchEvent(new Event("__FENGARI_DEVTOOLS_DEBUG_START__"))
+        ]])
+    end
+end)
+
+debuggerStepInto:addEventListener("click", function()
+
+end)
+
+debuggerStepOut:addEventListener("click", function()
+
+end)
+
+debuggerStepOver:addEventListener("click", function()
+
+end)
+
 
 state:addEventListener("change", function()
     clear()

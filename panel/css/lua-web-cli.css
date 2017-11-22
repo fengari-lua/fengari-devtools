@@ -31,11 +31,20 @@ pre {
 
 #state {
     font-family: 'profontwindowsregular';
-    width: 100%;
     border: none;
     color: #444;
     background: #f0f0f0;
     display: inline-block;
+}
+
+
+#debugger {
+    position: absolute;
+    right: 10px;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    height: 18px;
 }
 
 .fengari-input-container > *, .state-container {
@@ -53,6 +62,7 @@ pre {
 }
 
 .state-container {
+    position: relative;
     border-radius: 3px 3px 0 0;
     border-bottom: 1px solid #ddd;
     white-space: inherit;

@@ -1,6 +1,7 @@
 <html>
 
     <head>
+        <meta charset="UTF-8">
         <link href="https://fonts.googleapis.com/css?family=Libre+Franklin:300,300i,400,400i,600,600i" rel="stylesheet">
 
         <link rel="stylesheet" type="text/css" href="panel/css/github.css">
@@ -16,6 +17,12 @@
                 <div class="repl">
                     <div class="state-container">
                         <select name="state" id="state"></select>
+                        <div id="debugger">
+                            <button id="debugger-pause-resume">▶</button>
+                            <button id="debugger-step-into">↩</button>
+                            <button id="debugger-step-out">⤴</button>
+                            <button id="debugger-step-over">⤵</button>
+                        </div>
                     </div>
                     <code id="fengari-console"></code>
                     <div class="fengari-input-container">
