@@ -146,7 +146,19 @@ const registerDevtool = function () {
                 }
             };
 
+            const registerResource = function(url, content) {
+                window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_REGISTER_RESOURCE__", {
+                        detail: {
+                            stateId: currentState,
+                            url: url,
+                            content: content
+                        }
+                    }));
+            };
+
             window.__FENGARI_DEVTOOLS_RUN__ = run_lua_script;
+
+            window.__FENGARI_DEVTOOLS_REGISTER_RESOURCE__ = registerResource;
 
             window.addEventListener("__FENGARI_DEVTOOLS_EXECUTE__", function (event) {
                 if (event.detail.stateId === currentState)

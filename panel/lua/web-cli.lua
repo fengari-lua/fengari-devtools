@@ -15,6 +15,7 @@ window:sendObjectToInspectedPage("script", "injected.js")
 local output = document:getElementById("fengari-console")
 local prompt = document:getElementById("fengari-prompt")
 local input = document:getElementById("fengari-input")
+local source = document:getElementById("fengari-source")
 local state = document:getElementById("state")
 local debuggerPauseResume = document:getElementById("debugger-pause-resume")
 local debuggerStepInto = document:getElementById("debugger-step-into")
@@ -33,6 +34,8 @@ local historyIndex = nil
 local historyLimit = 100
 
 local debugging = false
+
+local resources = {}
 
 local function executeOnInspectedPage(code)
     if (not debugging) then
@@ -119,6 +122,12 @@ window:addEventListener("__FENGARI_DEVTOOLS_RESULTS__", function (_, event)
         end
 
         _G.print(unpack(toprint))
+    end
+end)
+
+window:addEventListener("__FENGARI_DEVTOOLS_REGISTER_RESOURCE__", function (_, event)
+    if (tonumber(event.detail.stateId) == tonumber(state.value)) then
+        resources[event.detail.url] = event.detail.content
     end
 end)
 
