@@ -15,7 +15,7 @@ window:sendObjectToInspectedPage("script", "injected.js")
 local output = document:getElementById("fengari-console")
 local prompt = document:getElementById("fengari-prompt")
 local input = document:getElementById("fengari-input")
-local source = document:getElementById("fengari-source")
+local source = document:querySelector("#fengari-source pre.lua")
 local state = document:getElementById("state")
 local debuggerPauseResume = document:getElementById("debugger-pause-resume")
 local debuggerStepInto = document:getElementById("debugger-step-into")
@@ -133,6 +133,13 @@ end)
 
 window:addEventListener("__FENGARI_DEVTOOLS_REGISTER__", function (_, event)
     registerState(event.detail.stateId, event.detail.stateName)
+end)
+
+window:addEventListener("__FENGARI_DEVTOOLS_DEBUG_RESOURCE__", function (_, event)
+    if (tonumber(event.detail.stateId) == tonumber(state.value)) then
+        source.textContent = resources[event.detail.source] or "Source unavailable"
+        hljs:highlightBlock(source)
+    end
 end)
 
 window:addEventListener("__FENGARI_DEVTOOLS_DEBUG_START__", function (_, event)

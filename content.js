@@ -51,6 +51,23 @@ const registerDevtool = function () {
                     }
                 }));
 
+                run_lua_script(`do
+                        local window = js.global
+
+                        local info = debug.getinfo(3)
+                        local source = info.source
+
+                        local event = js.new(window.Object)
+                        event.detail = js.new(window.Object)
+                        event.detail.stateId = ${currentState}
+                        event.detail.source = source
+
+                        window.console:warn(event)
+
+                        window:dispatchEvent(js.new(window.CustomEvent, "__FENGARI_DEVTOOLS_DEBUG_RESOURCE__", event))
+                    end
+                `);
+
                 debugger;
 
                 return 0;
