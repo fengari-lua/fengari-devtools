@@ -140,6 +140,11 @@ window:addEventListener("__FENGARI_DEVTOOLS_DEBUG_RESOURCE__", function (_, even
     if (tonumber(event.detail.stateId) == tonumber(state.value)) then
         source.textContent = resources[event.detail.source] or "Source unavailable"
         hljs:highlightBlock(source)
+        source.innerHTML = "<div class=\"line\">"
+            .. source.innerHTML:gsub("\n", "</div><div class=\"line\">") .. "</div>"
+
+        local lines = source:querySelectorAll(".line")
+        lines[event.detail.currentline - 1].className = "line debug"
     end
 end)
 

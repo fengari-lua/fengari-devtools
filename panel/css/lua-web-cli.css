@@ -85,3 +85,13 @@ pre {
     }
 
 }
+
+#fengari-source .line:after {
+    content: " ";
+}
+
+
+#fengari-source .line.debug {
+    outline: 1px solid rgb(64, 115, 244);
+    background-color: rgba(64,115,244, 0.2);
+}
