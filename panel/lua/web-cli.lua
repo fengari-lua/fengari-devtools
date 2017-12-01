@@ -128,6 +128,7 @@ end)
 window:addEventListener("__FENGARI_DEVTOOLS_REGISTER_RESOURCE__", function (_, event)
     if (tonumber(event.detail.stateId) == tonumber(state.value)) then
         resources[event.detail.url] = event.detail.content
+        console:warn("received resource: " .. event.detail.url)
     end
 end)
 
@@ -295,5 +296,6 @@ clear()
 window:sendObjectToInspectedPage("code",
     [[
         window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_STATES__"))
+        window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_RESOURCES__"))
     ]]
 );

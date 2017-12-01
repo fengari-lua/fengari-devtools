@@ -1,6 +1,7 @@
 const registerDevtool = function () {
     if (!window.__FENGARI_DEVTOOLS__) {
         window.__FENGARI_DEVTOOLS_STATES__ = [];
+        window.__FENGARI_DEVTOOLS_RESOURCES__ = {};
 
         const registerState = function(id, name) {
             window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_REGISTER__", {
@@ -55,12 +56,12 @@ const registerDevtool = function () {
                         local window = js.global
 
                         local info = debug.getinfo(3)
-                        local source = info.source
 
                         local event = js.new(window.Object)
                         event.detail = js.new(window.Object)
                         event.detail.stateId = ${currentState}
-                        event.detail.source = source
+                        event.detail.source = info.source:sub(2)
+                        event.detail.currentline = info.currentline
 
                         window.console:warn(event)
 
@@ -164,6 +165,7 @@ const registerDevtool = function () {
             };
 
             const registerResource = function(url, content) {
+                __FENGARI_DEVTOOLS_RESOURCES__[url] = content;
                 window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_REGISTER_RESOURCE__", {
                         detail: {
                             stateId: currentState,
@@ -172,6 +174,12 @@ const registerDevtool = function () {
                         }
                     }));
             };
+
+            window.addEventListener("__FENGARI_DEVTOOLS_RESOURCES__", function() {
+                Object.keys(__FENGARI_DEVTOOLS_RESOURCES__).forEach(function(url) {
+                    registerResource(url, __FENGARI_DEVTOOLS_RESOURCES__[url]);
+                });
+            });
 
             window.__FENGARI_DEVTOOLS_RUN__ = run_lua_script;
 
