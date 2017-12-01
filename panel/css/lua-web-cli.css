@@ -95,3 +95,23 @@ pre {
     outline: 1px solid rgb(64, 115, 244);
     background-color: rgba(64,115,244, 0.2);
 }
+
+#fengari-context {
+    background-color: #f8f8f8;
+    display: block;
+    margin: 20px 0;
+    font-family: 'profontwindowsregular';
+}
+
+#fengari-context table {
+    font-size: 13px;
+    padding: 10px;
+}
+
+#fengari-content table td {
+    padding: 5px;
+}
+
+#fengari-context .name {
+    color: rgb(227, 110, 236);
+}

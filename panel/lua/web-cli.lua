@@ -16,6 +16,7 @@ local output = document:getElementById("fengari-console")
 local prompt = document:getElementById("fengari-prompt")
 local input = document:getElementById("fengari-input")
 local source = document:querySelector("#fengari-source pre.lua")
+local locals = document:querySelector("#fengari-context tbody")
 local state = document:getElementById("state")
 local debuggerPauseResume = document:getElementById("debugger-pause-resume")
 local debuggerStepInto = document:getElementById("debugger-step-into")
@@ -136,20 +137,28 @@ window:addEventListener("__FENGARI_DEVTOOLS_REGISTER__", function (_, event)
     registerState(event.detail.stateId, event.detail.stateName)
 end)
 
-window:addEventListener("__FENGARI_DEVTOOLS_DEBUG_RESOURCE__", function (_, event)
-    if (tonumber(event.detail.stateId) == tonumber(state.value)) then
-        source.textContent = resources[event.detail.source] or "Source unavailable"
-        hljs:highlightBlock(source)
-        source.innerHTML = "<div class=\"line\">"
-            .. source.innerHTML:gsub("\n", "</div><div class=\"line\">") .. "</div>"
-
-        local lines = source:querySelectorAll(".line")
-        lines[event.detail.currentline - 1].className = "line debug"
-    end
-end)
-
 window:addEventListener("__FENGARI_DEVTOOLS_DEBUG_START__", function (_, event)
     debugging = true
+
+    source.textContent = resources[event.detail.source] or "Source unavailable"
+    hljs:highlightBlock(source)
+    source.innerHTML = "<div class=\"line\">"
+        .. source.innerHTML:gsub("\n", "</div><div class=\"line\">") .. "</div>"
+
+    local lines = source:querySelectorAll(".line")
+    lines[event.detail.currentline - 1].className = "line debug"
+
+    locals.innerHTML = ""
+    local context = event.detail.context
+    for key in js.of(window.Object:keys(context)) do
+        local name, value = key, context[key]
+        locals.innerHTML = locals.innerHTML .. [[
+            <tr>
+                <td class="name">]] .. name .. [[:</td>
+                <td class="value">]] .. value .. [[</td>
+            </tr>
+        ]]
+    end
 end)
 
 window:addEventListener("__FENGARI_DEVTOOLS_DEBUG_STOP__", function (_, event)

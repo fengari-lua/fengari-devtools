@@ -46,26 +46,35 @@ const registerDevtool = function () {
                     }
                 }));
 
-                window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_DEBUG_START__", {
-                    detail: {
-                        stateId: currentState
-                    }
-                }));
-
                 run_lua_script(`do
                         local window = js.global
 
                         local info = debug.getinfo(3)
+
+                        local context = js.new(window.Object)
+
+                        local i = 1
+                        local name, value
+                        repeat
+                            name, value = debug.getlocal(3, i)
+
+                            if (name) then
+                                context[tostring(name)] = tostring(value)
+                            end
+
+                            i = i + 1
+                        until name == nil
 
                         local event = js.new(window.Object)
                         event.detail = js.new(window.Object)
                         event.detail.stateId = ${currentState}
                         event.detail.source = info.source:sub(2)
                         event.detail.currentline = info.currentline
+                        event.detail.context = context
 
                         window.console:warn(event)
 
-                        window:dispatchEvent(js.new(window.CustomEvent, "__FENGARI_DEVTOOLS_DEBUG_RESOURCE__", event))
+                        window:dispatchEvent(js.new(window.CustomEvent, "__FENGARI_DEVTOOLS_DEBUG_START__", event))
                     end
                 `);
 

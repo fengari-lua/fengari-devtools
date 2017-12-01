@@ -32,10 +32,6 @@
             window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_DEBUG_STOP__", {
                 detail: message.data
             }));
-        else if (message.type === "__FENGARI_DEVTOOLS_DEBUG_RESOURCE__")
-            window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_DEBUG_RESOURCE__", {
-                detail: message.data
-            }));
         else if (message.type === "__FENGARI_DEVTOOLS_REGISTER_RESOURCE__")
             window.dispatchEvent(new CustomEvent("__FENGARI_DEVTOOLS_REGISTER_RESOURCE__", {
                 detail: message.data
